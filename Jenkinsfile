@@ -47,7 +47,7 @@ pipeline {
                 dir(env.WORKSPACE){
                     // Borra y levanta el contenedor de producción
                     sh "docker rm -f pokedex-app || true"
-                    sh "docker run -d --name pokedex-app -p 5000:5000 $IMAGE_PROD"
+                    sh "docker run -d --name pokedex-app -p 0.0.0.0:5000:5000 $IMAGE_PROD"
                     echo "✅ Contenedor pokedex-app levantado. Esperando 2 minutos para pruebas manuales..."
 
                     // Espera 600 segundos
