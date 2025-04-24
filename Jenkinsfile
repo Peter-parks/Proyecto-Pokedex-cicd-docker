@@ -3,39 +3,50 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'mi-app:latest'
+        WORKSPACE = "${env.WORKSPACE}"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                dir(WORKSPACE){
+                    checkout scm
+                }                
             }
         }
 
         stage('Install & Test') {
             steps {
-                sh 'npm ci'
-                sh 'npm test'
+                dir(WORKSPACE){
+                    sh 'npm ci'
+                    sh 'npm test'
+                }                
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE .'
+                dir(WORKSPACE){
+                    sh 'docker build -t $DOCKER_IMAGE .'
+                }
             }
         }
 
         stage('Run Container') {
             steps {
-                sh 'docker run -d -p 5000:5000 --name mi-app-test $DOCKER_IMAGE'
+                dir(WORKSPACE){
+                    sh 'docker run -d -p 5000:5000 --name mi-app-test $DOCKER_IMAGE'
+                }
             }
         }
     }
 
     post {
         always {
-            sh 'docker stop mi-app-test || true'
-            sh 'docker rm mi-app-test || true'
+            dir(WORKSPACE){
+                sh 'docker stop mi-app-test || true'
+                sh 'docker rm mi-app-test || true'
+            }
         }
     }
 }
