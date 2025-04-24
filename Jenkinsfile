@@ -2,40 +2,51 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'mi-app:latest'
-        WORKSPACE = "${env.WORKSPACE}"
+        IMAGE_TEST    = "pokedex-app:test"
+        IMAGE_PROD    = "pokedex-app:latest"
+        CONTAINER_TEST = "pokedex-test-container"
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                dir(WORKSPACE){
-                    checkout scm
-                }                
-            }
-        }
-
-        stage('Install & Test') {
-            steps {
-                dir(WORKSPACE){
-                    sh 'npm ci'
-                    sh 'npm test'
-                }                
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                dir(WORKSPACE){
-                    sh 'docker build -t $DOCKER_IMAGE .'
+        stage('Build Test Image') {
+           steps {
+                dir(env.WORKSPACE){
+                    // Construye solo la etapa 'builder' desde el Dockerfile en el workspace
+                    sh "docker build --target builder -t $IMAGE_TEST ."
                 }
             }
         }
 
-        stage('Run Container') {
+        stage('Run Tests in Test Container') {
             steps {
-                dir(WORKSPACE){
-                    sh 'docker run -d -p 5000:5000 --name mi-app-test $DOCKER_IMAGE'
+                dir(env.WORKSPACE){
+                    // Levanta el contenedor en background
+                    sh "docker rm -f $CONTAINER_TEST || true"
+                    sh "docker run -d --name $CONTAINER_TEST $IMAGE_TEST tail -f /dev/null"
+
+                    // Ejecuta dentro del contenedor los comandos de test y lint
+                    sh "docker exec $CONTAINER_TEST npm test"
+                    sh "docker exec $CONTAINER_TEST npm run eslint"
+
+                    // Para y elimina el contenedor de test
+                    sh "docker rm -f $CONTAINER_TEST"                                                        
+                }
+            }
+        }    
+
+        stage('Build Docker Image') {
+            steps {
+                dir(env.WORKSPACE){
+                    sh "docker build -t $IMAGE_PROD ."
+                }
+            }
+        }
+
+        stage('Run Production Container') {
+            steps {
+                dir(env.WORKSPACE){
+                    sh "docker rm -f pokedex-app || true"
+                    sh "docker run -d --name pokedex-app -p 5000:5000 $IMAGE_PROD"
                 }
             }
         }
@@ -43,10 +54,16 @@ pipeline {
 
     post {
         always {
-            dir(WORKSPACE){
-                sh 'docker stop mi-app-test || true'
-                sh 'docker rm mi-app-test || true'
+            dir(env.WORKSPACE){
+                // Limpieza de la imagen test
+                sh "docker rmi $IMAGE_TEST || true"
             }
         }
-    }
+        success {
+            echo '✅ Pipeline completado correctamente'
+        }
+        failure {
+            echo '❌ Pipeline falló'
+        }            
+    }    
 }
