@@ -23,4 +23,4 @@ ENV NODE_OPTIONS=--openssl-legacy-provider
 
 EXPOSE 5000
 
-CMD ["npm", "run", "start-prod"]
+CMD ["npm", "start"]
