@@ -28,7 +28,7 @@ pipeline {
                     sh "docker exec $CONTAINER_TEST npm test"
                     sh "docker exec $CONTAINER_TEST npm run eslint"
 
-                    // Para y elimina el contenedor de test
+                    // Elimina el contenedor de test
                     sh "docker rm -f $CONTAINER_TEST"                                                        
                 }
             }
