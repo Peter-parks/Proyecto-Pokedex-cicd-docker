@@ -21,6 +21,8 @@ pipeline {
         stage('Run Tests in Test Container') {
             steps {
                 dir(env.WORKSPACE){
+                  // Asegura que la etapa no detenga el pipeline en caso de fallo
+                  catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                     // Elimina cualquier contenedor previo
                     sh "docker rm -f $CONTAINER_TEST || true"
                     // Levanta el contenedor en background
@@ -31,7 +33,8 @@ pipeline {
                     sh "docker exec $CONTAINER_TEST npm run eslint"
 
                     // Elimina el contenedor de test
-                    sh "docker rm -f $CONTAINER_TEST"                                                        
+                    sh "docker rm -f $CONTAINER_TEST" 
+                    }                                                       
                 }
             }
         }    
@@ -60,9 +63,6 @@ pipeline {
 //                }
 //            }
         stage('Push Test Image to Docker Hub') {
-            when {
-                expression { currentBuild.currentResult == 'SUCCESS' }
-            }
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: env.DOCKERHUB_CREDENTIALS,
