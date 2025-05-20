@@ -39,13 +39,13 @@ pipeline {
             }
         }    
 
-        stage('Build Docker Image') {
-            steps {
-                dir(env.WORKSPACE){
-                    sh "docker build -t $IMAGE_PROD ."
-                }
-            }
-        }
+//        stage('Build Docker Image') {
+//            steps {
+//                dir(env.WORKSPACE){
+//                    sh "docker build -t $IMAGE_PROD ."
+//                }
+//            }
+//        }
 //        stage('Run Production Container') {
 //            steps {
 //                dir(env.WORKSPACE){
