@@ -1,4 +1,4 @@
-name: Say hello
+name: Say hello 
 
 on:
   push:
@@ -14,10 +14,4 @@ jobs:
     steps:
       - name: Echo the message
         run: echo "Hello, world!"
-      - name: Echo the message with a greeting
-        run: echo "Hello, world! This is a greeting from the GitHub Actions workflow."
-      - name: Echo the message with a farewell
-        run: echo "Goodbye, world! This is a farewell from the GitHub Actions workflow."
-      - name: Echo the message with a final note
-        run: echo "This concludes the hello world workflow. Thank you for using GitHub Actions!"
         
